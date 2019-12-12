@@ -31,10 +31,11 @@ from btcrecover import btcrseed
 import sys, multiprocessing
 
 if __name__ == "__main__":
-
+    print()
     print("Starting", btcrseed.full_version())
+
     btcrseed.register_autodetecting_wallets()
-    mnemonic_sentence = btcrseed.main(sys.argv[1:])
+    mnemonic_sentence, path_coin = btcrseed.main(sys.argv[1:])
 
     if mnemonic_sentence:
         if not btcrseed.tk_root:  # if the GUI is not being used
@@ -45,7 +46,7 @@ if __name__ == "__main__":
             print("HTML encoded seed:", mnemonic_sentence.encode("ascii", "xmlcharrefreplace"))
 
         if btcrseed.tk_root:      # if the GUI is being used
-            btcrseed.show_mnemonic_gui(mnemonic_sentence)
+            btcrseed.show_mnemonic_gui(mnemonic_sentence, path_coin)
 
         retval = 0
 
