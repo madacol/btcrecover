@@ -18,17 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/
 
-# If you find this program helpful, please consider a small
-# donation to the developer at the following Bitcoin address:
-#
-#           3Au8ZodNHPei7MQiSVAWb7NB2yqsb48GW4
-#
-#                      Thank You!
-
 # Special thanks to Bitcointalk.org user Wotan777 who discovered a better way
 # to work with Electrum wallets, and who made this extract script possible.
 
-from __future__ import print_function
+
 import sys, os.path, ast, base64, zlib, struct
 
 prog = os.path.basename(sys.argv[0])
@@ -39,7 +32,7 @@ if len(sys.argv) != 2 or sys.argv[1].startswith("-"):
 
 wallet_filename = sys.argv[1]
 
-wallet = ast.literal_eval(open(wallet_filename, "rb").read(64 * 2**20))  # up to 64M, typical size is a few k
+wallet = ast.literal_eval(open(wallet_filename).read(64 * 2**20))  # up to 64M, typical size is a few k
 
 seed_version = wallet.get("seed_version")
 if seed_version is None: raise ValueError("Unrecognized wallet format (Electrum seed_version not found)")
@@ -55,4 +48,4 @@ print("First half of encrypted Electrum seed, iv, and crc in base64:", file=sys.
 bytes = b"el:" + iv_and_encr_seed[:32]  # only need the 16-byte IV plus the first 16-byte encrypted block of the seed
 crc_bytes = struct.pack("<I", zlib.crc32(bytes) & 0xffffffff)
 
-print(base64.b64encode(bytes + crc_bytes))
+print(base64.b64encode(bytes + crc_bytes).decode())

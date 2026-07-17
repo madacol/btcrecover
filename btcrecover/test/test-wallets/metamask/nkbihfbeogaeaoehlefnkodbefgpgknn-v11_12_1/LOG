@@ -1,0 +1,29 @@
+2024/03/18-06:48:42.105 170 Creating DB C:\Users\crypto\AppData\Local\Google\Chrome\User Data\Default\Local Extension Settings\nkbihfbeogaeaoehlefnkodbefgpgknn since it was missing.
+2024/03/18-06:48:42.109 170 Reusing MANIFEST C:\Users\crypto\AppData\Local\Google\Chrome\User Data\Default\Local Extension Settings\nkbihfbeogaeaoehlefnkodbefgpgknn/MANIFEST-000001
+2024/03/18-06:52:44.112 b0 Level-0 table #5: started
+2024/03/18-06:52:44.130 b0 Level-0 table #5: 2523551 bytes OK
+2024/03/18-06:52:44.132 b0 Delete type=0 #3
+2024/03/18-06:52:52.047 b0 Level-0 table #7: started
+2024/03/18-06:52:52.064 b0 Level-0 table #7: 2524042 bytes OK
+2024/03/18-06:52:52.065 b0 Delete type=0 #4
+2024/03/18-06:53:04.453 b0 Level-0 table #9: started
+2024/03/18-06:53:04.472 b0 Level-0 table #9: 2526103 bytes OK
+2024/03/18-06:53:04.474 b0 Delete type=0 #6
+2024/03/18-06:53:09.554 b0 Level-0 table #11: started
+2024/03/18-06:53:09.573 b0 Level-0 table #11: 2527469 bytes OK
+2024/03/18-06:53:09.575 b0 Delete type=0 #8
+2024/03/18-06:53:50.523 b0 Level-0 table #13: started
+2024/03/18-06:53:50.543 b0 Level-0 table #13: 2526942 bytes OK
+2024/03/18-06:53:50.545 b0 Delete type=0 #10
+2024/03/18-06:53:59.945 b0 Level-0 table #15: started
+2024/03/18-06:53:59.961 b0 Level-0 table #15: 2527193 bytes OK
+2024/03/18-06:53:59.963 b0 Delete type=0 #12
+2024/03/18-06:53:59.963 b0 Compacting 4@0 + 1@1 files
+2024/03/18-06:54:00.003 b0 Generated table #16@0: 1 keys, 1263638 bytes
+2024/03/18-06:54:00.003 b0 Compacted 4@0 + 1@1 files => 1263638 bytes
+2024/03/18-06:54:00.004 b0 compacted to: files[ 0 1 1 0 0 0 0 ]
+2024/03/18-06:54:00.004 b0 Delete type=2 #7
+2024/03/18-06:54:00.004 b0 Delete type=2 #9
+2024/03/18-06:54:00.004 b0 Delete type=2 #11
+2024/03/18-06:54:00.004 b0 Delete type=2 #13
+2024/03/18-06:54:00.004 b0 Delete type=2 #15

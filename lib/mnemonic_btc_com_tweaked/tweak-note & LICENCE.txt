@@ -1,0 +1,120 @@
+This is the standard mnemonic library that is available from pypy, but has been modified to accept 60 word BIP39 compatible mnemonics used to encode data for btc.com (aka blocktrail) wallet backups. (These long mnemonics are not for wallet keys but are just using BIP39 to encode encrypted wallet data in a human readable way)
+
+
+From PYPY:
+
+Latest version
+Released: Jan 5, 2024
+
+Implementation of Bitcoin BIP-0039
+
+License: MIT License (MIT)
+Author: Trezor
+Requires: Python >=3.8.1
+Classifiers
+License
+OSI Approved :: MIT License
+Programming Language
+Python :: 3
+Python :: 3.9
+Python :: 3.10
+Python :: 3.11
+Project description
+python-mnemonic
+https://badge.fury.io/py/mnemonic.svg
+Reference implementation of BIP-0039: Mnemonic code for generating deterministic keys
+
+Abstract
+This BIP describes the implementation of a mnemonic code or mnemonic sentence – a group of easy to remember words – for the generation of deterministic wallets.
+
+It consists of two parts: generating the mnenomic, and converting it into a binary seed. This seed can be later used to generate deterministic wallets using BIP-0032 or similar methods.
+
+BIP Paper
+See https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki for full specification
+
+Installation
+To install this library and its dependencies use:
+
+pip install mnemonic
+
+Usage examples
+Import library into python project via:
+
+from mnemonic import Mnemonic
+Initialize class instance, picking from available dictionaries:
+
+english
+
+chinese_simplified
+
+chinese_traditional
+
+french
+
+italian
+
+japanese
+
+korean
+
+spanish
+
+turkish
+
+czech
+
+portuguese
+
+mnemo = Mnemonic(language)
+mnemo = Mnemonic("english")
+Generate word list given the strength (128 - 256):
+
+words = mnemo.generate(strength=256)
+Given the word list and custom passphrase (empty in example), generate seed:
+
+seed = mnemo.to_seed(words, passphrase="")
+Given the word list, calculate original entropy:
+
+entropy = mnemo.to_entropy(words)
+Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+
+0.21 - 2024-01-05
+Added
+Czech and Portuguese wordlists
+
+Option to provide custom list of words instead of loading from built-in file
+
+Changed
+Use secrets module for randomness
+
+Use English as a default language if none is provided
+
+Language detection is unambiguous even if some words are ambiguous
+
+Build system switched to Poetry
+
+Removed
+Support for Python below 3.8 was dropped
+
+0.20 - 2021-07-27
+Added
+Type annotations
+
+Support for testnet private keys
+
+Changed
+Project directory structure was cleaned up
+
+Language on the Mnemonic object is remembered instead of repeatedly detecting
+
+Removed
+Support for Python 2.7 and 3.4 was dropped
+
+0.19 - 2019-10-01
+Added
+
+
+

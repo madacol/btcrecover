@@ -18,14 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/
 
-# If you find this program helpful, please consider a small
-# donation to the developer at the following Bitcoin address:
-#
-#           3Au8ZodNHPei7MQiSVAWb7NB2yqsb48GW4
-#
-#                      Thank You!
-
-from __future__ import print_function
 import sys, os.path, json, base64, zlib, itertools, struct
 
 prog = os.path.basename(sys.argv[0])
@@ -39,13 +31,13 @@ wallet_filename = sys.argv[1]
 with open(wallet_filename) as wallet_file:
     try:
         wallet = json.load(wallet_file)
-    except ValueError as e:
+    except json.decoder.JSONDecodeError as e:
         wallet_file.seek(0)
         try:
             data = base64.b64decode(wallet_file.read(8))
         except TypeError:
             raise e
-        if data[:4] == "BIE1":  # Electrum 2.8+ magic
+        if data[:4] == b"BIE1":  # Electrum 2.8+ magic
             raise NotImplementedError("Electrum 2.8+ fully encrypted wallets are supported by btcrecover, but not via data extracts")
         else:
             raise e
@@ -65,7 +57,7 @@ if wallet_type == "old":
     desc      = "First half of encrypted Electrum 1.x seed"
 
 else:
-    if wallet.get("seed_version") not in (11, 12, 13) and wallet_type != "imported":  # all 2.x versions as of Oct 2016
+    if wallet.get("seed_version") < 11 and wallet_type != "imported":  # all 2.x versions as of Oct 2016
                                      raise NotImplementedError("Unsupported Electrum2 seed version " + str(seed_version))
     xprv = None
 
@@ -94,7 +86,7 @@ else:
 
             # Imported loose private keys
             elif keystore_type == "imported":
-                for privkey in keystore["keypairs"].values():
+                for privkey in list(keystore["keypairs"].values()):
                     if privkey:
                         privkey = base64.b64decode(privkey)
                         if len(privkey) != 80:
@@ -120,7 +112,7 @@ else:
 
         # Electrum 2.0 - 2.6.4 wallet with imported loose private keys
         if wallet_type == "imported":
-            for imported in wallet["accounts"]["/x"]["imported"].values():
+            for imported in list(wallet["accounts"]["/x"]["imported"].values()):
                 privkey = imported[1] if len(imported) >= 2 else None
                 if privkey:
                     # Construct and return a WalletElectrumLooseKey object
@@ -136,7 +128,7 @@ else:
         else:
             mpks = wallet.get("master_private_keys")
             if mpks:
-                xprv = mpks.values()[0]
+                xprv = list(mpks.values())[0]
                 raise FoundEncryptedData()
 
         raise RuntimeError("No master private keys or seeds found in Electrum2 wallet")
@@ -154,7 +146,7 @@ assert wallet_id and data and len(data) == 32
 
 print(desc + ", iv, and crc in base64:", file=sys.stderr)
 
-bytes = wallet_id + ":" + data
+bytes = wallet_id.encode() + b":" + data
 crc_bytes = struct.pack("<I", zlib.crc32(bytes) & 0xffffffff)
 
-print(base64.b64encode(bytes + crc_bytes))
+print(base64.b64encode(bytes + crc_bytes).decode())

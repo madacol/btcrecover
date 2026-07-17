@@ -18,14 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/
 
-# If you find this program helpful, please consider a small
-# donation to the developer at the following Bitcoin address:
-#
-#           3Au8ZodNHPei7MQiSVAWb7NB2yqsb48GW4
-#
-#                      Thank You!
-
-from __future__ import print_function
 import sys, os.path, json, struct, base64, zlib
 
 prog = os.path.basename(sys.argv[0])
@@ -46,10 +38,10 @@ with open(wallet_filename, "rb") as wallet_file:
     # For the first block, give up if this doesn't look like a text file
     last_block = ""
     cur_block  = wallet_file.read(16384)
-    if sum(1 for c in cur_block if ord(c)>126 or ord(c)==0) > 512: # about 3%
+    if sum(1 for c in cur_block if c>126 or c==0) > 512: # about 3%
         raise ValueError("Unrecognized pywallet format (does not look like ASCII text)")
     while cur_block:
-        found_at = cur_block.find('"nDerivation')
+        found_at = cur_block.find(b'"nDerivation')
         if found_at >= 0: break
         last_block = cur_block
         cur_block  = wallet_file.read(16384)
@@ -60,10 +52,10 @@ with open(wallet_filename, "rb") as wallet_file:
     cur_block = last_block + cur_block + wallet_file.read(4096)
 
 # Search backwards for the beginning of the mkey object we need, and decode it
-found_at  = cur_block.rfind("{", 0, found_at + len(last_block))
+found_at  = cur_block.rfind(b"{", 0, found_at + len(last_block))
 if found_at < 0:
     raise ValueError("Unrecognized pywallet format (can't find mkey opening brace)")
-wallet = json.JSONDecoder().raw_decode(cur_block[found_at:])[0]
+wallet = json.JSONDecoder().raw_decode(cur_block[found_at:].decode())[0]
 
 # Do some sanity checking
 #
@@ -96,4 +88,4 @@ print("Partial Bitcoin Core encrypted master key, salt, iter_count, and crc in b
 bytes = b"bc:" + encrypted_master_key[-32:] + salt + struct.pack("<I", iter_count)
 crc_bytes = struct.pack("<I", zlib.crc32(bytes) & 0xffffffff)
 
-print(base64.b64encode(bytes + crc_bytes))
+print(base64.b64encode(bytes + crc_bytes).decode())

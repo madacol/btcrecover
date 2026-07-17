@@ -18,14 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/
 
-# If you find this program helpful, please consider a small
-# donation to the developer at the following Bitcoin address:
-#
-#           3Au8ZodNHPei7MQiSVAWb7NB2yqsb48GW4
-#
-#                      Thank You!
-
-from __future__ import print_function
 import sys, os.path, base64, json, zlib, struct
 
 prog = os.path.basename(sys.argv[0])
@@ -50,9 +42,9 @@ try:
         raise MayBeBlockchainV0()
 
     # Config files have no version attribute; they encapsulate the wallet file plus some detrius
-    if u"version" not in data:
+    if "version" not in data:
         try:
-            data = data[u"payload"]  # extract the wallet file from the config
+            data = data["payload"]  # extract the wallet file from the config
         except KeyError:
             raise ValueError("Can't find either version nor payload attributes in Blockchain file")
         try:
@@ -60,13 +52,13 @@ try:
         except ValueError:
             raise MayBeBlockchainV0()
 
-    # Extract what's needed from a v2.0/3.0 wallet file
-    if data[u"version"] > 3:
-        raise NotImplementedError("Unsupported Blockchain wallet version " + str(data[u"version"]))
-    iter_count = data[u"pbkdf2_iterations"]
+    # Extract what's needed from a v2.0/3.0/4 wallet file
+    if data["version"] > 4:
+        raise NotImplementedError("Unsupported Blockchain wallet version " + str(data["version"]))
+    iter_count = data["pbkdf2_iterations"]
     if not isinstance(iter_count, int) or iter_count < 1:
         raise ValueError("Invalid Blockchain pbkdf2_iterations " + str(iter_count))
-    data = data[u"payload"]
+    data = data["payload"]
 
 except MayBeBlockchainV0:
     pass
@@ -87,4 +79,4 @@ print("Blockchain first 16 encrypted bytes, iv, and iter_count in base64:", file
 bytes = b"bk:" + struct.pack("< 16s 16s I", data[16:32], data[0:16], iter_count)
 crc_bytes = struct.pack("<I", zlib.crc32(bytes) & 0xffffffff)
 
-print(base64.b64encode(bytes + crc_bytes))
+print(base64.b64encode(bytes + crc_bytes).decode())

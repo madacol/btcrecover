@@ -18,15 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/
 
-# If you find this program helpful, please consider a small
-# donation to the developer at the following Bitcoin address:
-#
-#           3Au8ZodNHPei7MQiSVAWb7NB2yqsb48GW4
-#
-#                      Thank You!
-
-from __future__ import print_function
-import sys, os.path, sqlite3, base64, zlib, struct
+import sys, os.path, sqlite3, base64, zlib, struct, binascii
 
 prog = os.path.basename(sys.argv[0])
 
@@ -65,7 +57,7 @@ wallet_conn.close()
 
 # Extract the entire encrypted master private key for this keychain; it should
 # contain 32 bytes of encrypted key data, followed by 16 bytes of encrypted padding
-privkey_ciphertext = str(keychain["privkey_ciphertext"])
+privkey_ciphertext = keychain["privkey_ciphertext"]
 if len(privkey_ciphertext) == 32:
     sys.exit("mSIGNA keychain '"+keychain["name"]+"' is not encrypted")
 if len(privkey_ciphertext) != 48:
@@ -75,6 +67,6 @@ print("mSIGNA partial encrypted master private key, salt, and crc in base64:", f
 
 # We only need the last half of the encrypted master private key and the encrypted
 # padding (the last 32 bytes of the 48 bytes of ciphertext), plus the salt
-bytes = "ms:" + privkey_ciphertext[16:48] + struct.pack("< q", keychain["privkey_salt"])
+bytes = b"ms:" + privkey_ciphertext[16:48] + struct.pack("< q", keychain["privkey_salt"])
 crc_bytes = struct.pack("<I", zlib.crc32(bytes) & 0xffffffff)
-print(base64.b64encode(bytes + crc_bytes))
+print(base64.b64encode(bytes + crc_bytes).decode())

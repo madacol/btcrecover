@@ -1,199 +1,389 @@
-## *btcrecover* Installation ##
+# Installing BTCRecover #
 
-Just download the latest version from <https://github.com/gurnec/btcrecover/archive/master.zip> and unzip it to a location of your choice. There’s no installation procedure for *btcrecover* itself, however there are additional requirements below depending on your operating system and the wallet type you’re trying to recover.
+There are a few basic steps to installing BTCRecover.
 
-### Wallet Installation Requirements ###
+1) Download and unzip the BTCRecover script
+
+2) Download and install Python3
+
+3) Install required packages via Python PIP
+
+4) (Optional) Install PyOpenCL module for GPU Acceleration
+
+5) Test your installation (Optional, but a good idea)
+
+These steps are also covered in Videos below for each supported Operating System.
+
+**Note: Depending on your operating system and python environment, you may need to replace the `python` command with `python3`. (By default, the command to use will be `python` in Windows and `python3` in Linux) Most non-technical users are on Windows, so all example commands will use `python` to match the defaults for this platform** 
+
+**Video Tutorials**
+
+Windows: <https://youtu.be/JveLyJqEgLk>
+
+Ubuntu Linux: <https://youtu.be/Met3NbxcZTU>
+
+MacOS: <https://youtu.be/PMxkf4VYnkk>
+
+Android via Termux: <https://youtu.be/QrCWigmJFjA>
+
+## 1) Downloading *btcrecover* ##
+
+Just download the latest version from <https://github.com/3rdIteration/btcrecover/archive/master.zip> and unzip it to a location of your choice. There’s no installation procedure for *btcrecover* itself, however there are additional requirements below depending on your operating system and the wallet type you’re trying to recover.
+
+You can also use Git (If you have it installed) to do this with the command `git clone https://github.com/3rdIteration/btcrecover/`
+
+
+## 2) Install Python ##
+
+**Note:** Only Python 3.10 and later are officially supported... BTCRecover is automatically tested with all supported Python versions (3.10, 3.11, 3.12, 3.13, 3.14) on all supported environments (Windows, Linux, Mac), so you can be sure that both BTCRecover and all required packages will work correctly. Some features of BTCRecover may work on earlier versions of Python, your best bet is to use run-all-tests.py to see what works and what doesn't...
+
+**Recommended Python version: 3.13.** On Python 3.10–3.13, `coincurve`
+ships pre-built wheels, so the default `pip install -r requirements.txt`
+"just works" with the fastest secp256k1 backend. Python 3.14 (and any future
+3.15) currently has **no** `coincurve` wheel, so the default install cannot use
+coincurve there — see [Python 3.14 and coincurve](#python-314-and-coincurve).
+If you are on 3.14/3.15, install `wallycore` (or rely on the pure-Python
+fallback) and expect the HD-wallet packages in `requirements-full.txt` to be
+unavailable until coincurve publishes a wheel for that version.
+
+### Windows ###
+Video Demo of Installing BTCRecover in Windows: <https://youtu.be/JveLyJqEgLk>
+
+Install Python via the Windows Store.
+
+**Note for Large Multi-CPU Systems:** Windows limits the number of possible threads to 64. If your system has more logical/physical cores than this, your best bet is to run the tool in Linux. (Ubuntu is an easy place to start)
+
+### Linux ###
+Video Demo of Installing BTCRecover in Ubuntu Live USB: <https://youtu.be/Met3NbxcZTU>
+
+Most modern distributions include Python 3 pre-installed. Older Linux distributions will include Python2, so you will need to install python3.
+
+If you are using SeedRecover, you will also need to install tkinter (python3-tk) if you want to use the default GUI popups for seedrecover. (Command line use will work find without this package)
+
+Some distributions of Linux will bundle this with Python3, but for others like Ubuntu, you will need to manually install the tkinter module.
+
+You can install this with the command: `sudo apt install python3-tk`
+
+If any of the "pip3" commands below fail, you may also need to install PIP via the command: `sudo apt install python3-pip`
+
+If your installation fails to build cffi, you may also need to install libffi-dev with the command: `sudo apt install libffi-dev`
+
+If you get a message that there is no installation candidate for Python3-pip, you will need to enable the "universe" repository with the command: `sudo add-apt-repository universe`
+
+You can then re-run the command to install python3-pip from above.
+
+### Android via Termux ###
+Some warnings and notes...
+
+* Termux support remains experimental, but automated tests now run weekly via the Termux Docker container on GitHub Actions
+  
+* Your phone may not have sufficient cooling to run BTCRecover for any meaninful length of time
+  
+* Performance will also vary dramatically between phones and Android versions... (Though it is actually fast enough to be useful for simple recoveries)
+  
+* Termux is not a standard Linux environment and is not officially supported, but might work following the process below... (And if it doesn't, just use a PC instead...)
+  
+* Install Termux following the instructions here: <https://termux.dev/en/> (Currently not officially distributed on Google Play and the version on Google Play is not currently up-to-date)
+
+You will then need to install Python as well as some other packages (Mostly the Coincurve build requirements)
+
+    pkg install python-pip git autoconf automake build-essential libtool pkg-config llvm lld rust libsodium
+
+  The `python-pip` package already includes PIP. Attempting to upgrade it with
+  `pip install --upgrade pip` will fail and is unnecessary.
+
+Once this is done, you can install the base requirements for BTCRecover that allow recovery of common wallet types. (The full requirements have a lot of packages and will take a long time to build, like 15-20 minutes or more...)
+
+If you want to install the full requirements (requirements-full.txt), some packages like `py-sr25519-bindings` and `cryptography` use maturin as their build backend. The pre-built maturin wheel does not work correctly on Termux, so you need to build maturin from source first and install the affected packages without build isolation:
+
+    export ANDROID_API_LEVEL=24
+    export SODIUM_INSTALL=system
+    pip install maturin --no-binary maturin
+    pip install py-sr25519-bindings==0.2.3 --no-build-isolation
+    pip install -r requirements-full.txt
+
+#### Termux and the secp256k1 backends
+
+**coincurve does not work on Termux/aarch64 at all.** Even when it builds from
+source, `import coincurve` fails at runtime with
+`ImportError: dlopen failed: cannot locate symbol "_Py_NoneStruct"`
+(see [ofek/coincurve#189](https://github.com/ofek/coincurve/issues/189)). The
+`wallycore` package also has no Android/aarch64 wheel and its source build fails.
+As a result, the only secp256k1 backend that works on Termux is the bundled
+**pure-Python** implementation — which is correct but around 100× slower for
+public-key derivation (see [secp256k1 Backends](#secp256k1-backends-coincurve--wallycore--pure-python)).
+
+Two practical consequences:
+
+ * Install the **base** `requirements.txt` only (or install `wallycore` and
+   `protobuf`/`pycryptodome` individually). Avoid `requirements-full.txt` on
+   Termux: its `bip-utils` package hard-requires `coincurve`, which cannot be
+   installed on aarch64, so the full requirements will fail to install there.
+ * Expect recoveries on a phone to be slow; this is a CPU/backend limitation,
+   not a misconfiguration.
+
+#### Enabling Native RIPEMD160 Support
+As of OpenSSL v3 (Late 2021), ripemd160 is no longer enabled by default in some Linux environments and is now part of the "Legacy" set of hash functions. In Linux/MacOS environments, the hashlib module in Python relies on OpenSSL for ripemd160, so if you want full performance in these environments, you may need modify your OpenSSL settings to enable the legacy provider.
+
+You can check if this is required by running `python check_ripemd160.py`
+
+As of July 2022, BTCRecover does include a "pure Python" implementation of RIPEMD160, but this only offers about 1/3 of the performance when compared to a native implementation via hashlib.
+
+Video Demo of this applying fix can be found here: <https://youtu.be/S3DWKp0i4i0>
+
+An example of the modified configuration file can be found here: <https://github.com/3rdIteration/btcrecover/blob/master/docs/example_openssl.cnf>
+
+For more information, see the relevant issue on the OpenSSL Github repository: <https://github.com/openssl/openssl/issues/16994>
+
+### MacOS ###
+
+Video Demo of Installing BTCRecover in MacOS: <https://youtu.be/PMxkf4VYnkk>
+
+MacOS doesn't ship with Python3 and if you run Python3 on a stock install, will install the dev tools and a very old version of Python3... Rather than use that, we will use a current version of Python installed via Brew.
+
+1) [Install brew via instructions at brew.sh](https://brew.sh)
+   
+The Install command is:  
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+**Then after that has completed, follow the "next steps" instructions too.**
+
+    source ~/.zshrc
+   
+2) [Install Coincurve and Wallycore build requirements](https://ofek.dev/coincurve/install/) 
+   
+The Install command is:
+
+    brew install autoconf automake libffi libtool pkg-config python python-tk swig gsed
+
+3) Install Rust (Optional, but needed for requirements-full modules)
+
+The Install command is:
+
+    curl https://sh.rustup.rs -sSf | sh
+
+**If you install rust, close the current terminal window and open a new one before continuing with the process.**
+
+## 3) Install requirements via Python Pip ##
+
+Once both Python3 and PIP have been installed, you can install the requirements for BTCRecover.
+
+### Essential Requirements
+You will first want to install the basic packages required for BTCRecover with the command:
+
+`pip3 install -r requirements.txt`
+
+This will give you the functionality needed recovery of Bitcoin/Ethereum wallets (And clones of these chains)
+
+If when run this command, you get an error message similar to **error: externally-managed-environment** then you need to add an additional argument `--break-system-packages` to the above command. (So the command will be `pip3 install -r requirements.txt --break-system-packages`) 
+
+Note: If you use Python for other things beyond BTCRecover, then the `--break-system-packages` could cause other issues, but in such situations, managing your python virtual environments for your specific system is beyond the scope of this documentation.
+
+#### Python 3.14 and coincurve
+
+**coincurve does not currently ship pre-built wheels for Python 3.14**, and
+building it from source currently fails for both available releases:
+
+ * **coincurve 21** fails with `RuntimeError: Expected exactly one LICENSE file in cffi distribution, got 0`.
+ * **coincurve 20** fails with `ERROR: Use build.verbose instead of cmake.verbose for scikit-build-core >= 0.10`.
+
+Pre-built wheels exist only up to Python 3.13 (coincurve 21) / 3.12 (coincurve 20)
+on Windows, macOS, and Linux, so most desktop users on Python 3.10–3.13 are
+unaffected. If you are on **Python 3.14** (or any platform without a pre-built
+wheel), coincurve cannot be installed at all right now.
+
+Because BTCRecover now uses a pluggable secp256k1 backend, this is not fatal:
+if you install **wallycore** (`pip3 install wallycore`, already part of
+`requirements-full.txt` and the base `requirements.txt`), BTCRecover will
+automatically use it instead of coincurve and run at full C-accelerated speed.
+If neither coincurve nor wallycore can be installed, BTCRecover falls back to
+the bundled pure-Python implementation (with a startup warning) — correct, but
+around 100× slower for public-key derivation. You can force a backend with the
+`BTCR_BACKEND` environment variable (see
+[secp256k1 Backends](#secp256k1-backends-coincurve--wallycore--pure-python)).
+
+**Caveat for `requirements-full.txt` on Python 3.14:** the HD-wallet packages
+`bip-utils` (and the packages that depend on it — `py_crypto_hd_wallet`,
+`slip10`, `stellar_sdk`) hard-require `coincurve`, which cannot be installed on
+3.14. So `pip install -r requirements-full.txt` will fail on Python 3.14. The
+base `requirements.txt` does not have this problem (it only needs `wallycore`
+plus `protobuf`/`pycryptodome`), so install that and add the coincurve-dependent
+HD-wallet extras only once a coincurve wheel exists for 3.14.
+
+### Packages for Extended Wallet Support
+Depending on your wallet type, you may also want to install the packages required for full wallet support. This is a much larger download and may also require that you install additional software on your PC for these packages to build and install.
+
+`pip3 install -r requirements-full.txt`
+
+Note, if you are on MacOS, if this installation fails, you will also need to export the python path.
+
+    export PYTHON=/opt/homebrew/bin/python3
+
+### Installing individual packages
+If you are an advanced user, you may choose to install only those additional packages that are required for the specific recovery you are attempting. More information about which wallets require which packages is at the bottom of this guide.*
+
+## 4) Install PyOpenCL for GPU Acceleration ##
+
+GPU Support will require additional OpenCL libraries to be installed that aren't covered by the above commands... 
+
+For more information and instructions, [see the GPU acceleration page here](./GPU_Acceleration.md)
+
+## 5) Testing your Installation ##
+
+Once you have downloaded and unzipped BTCRecover, installed Python and all required libraries, you can test the program with the command:
+
+`python run-all-tests.py -vv`
+
+This command will take a few minutes to run and should complete without errors, indicating that your system is ready to use all features of BTCRecover.
+
+## Wallet Python Package Requirements ##
+
+**If you want to install all requirements for all wallet types, you can simply use the command `pip3 install -r requirements-full.txt`**
 
 Locate your wallet type in the list below, and follow the instructions for only the sections listed next to your wallet.
 
-**Note** that for Armory wallets, you must have Armory 0.92.x or later installed on the computer where you run *btcrecover*.
+ * Bitcoin Core - optional: [PyCryptoDome](#pycryptodome)
+ * MultiBit Classic - recommended: [PyCryptoDome](#pycryptodome)
+ * MultiBit HD - optional: [PyCryptoDome](#pycryptodome)
+ * Electrum (1.x or 2.x) - recommended: [PyCryptoDome](#pycryptodome)
+ * Electrum 2.8+ fully encrypted wallets - [coincurve](Seedrecover_Quick_Start_Guide.md#installation), optional: [PyCryptoDome](#pycryptodome)
+ * BIP-39 Bitcoin passphrases (e.g. TREZOR) - [coincurve](Seedrecover_Quick_Start_Guide.md#installation)
+ * BIP-39 Ethereum passphrases (e.g. TREZOR) - [PyCryptoDome](#pycryptodome) [coincurve](Seedrecover_Quick_Start_Guide.md#installation)
+ * Hive for OS X - [Google protobuf](https://pypi.org/project/protobuf/), optional: [PyCryptoDome](#pycryptodome)
+ * mSIGNA (CoinVault) - recommended: [PyCryptoDome](#pycryptodome)
+ * Blockchain.info - recommended: [PyCryptoDome](#pycryptodome)
+ * Bitcoin Wallet for Android/BlackBerry backup - recommended: [PyCryptoDome](#pycryptodome)
+ * Bitcoin Wallet for Android/BlackBerry spending PIN - [scrypt](#scrypt), [Google protobuf](https://pypi.org/project/protobuf/), optional: [PyCryptoDome](#pycryptodome)
+ * KnC Wallet for Android backup - recommended: [PyCryptoDome](#pycryptodome)
+ * Bither - [coincurve](Seedrecover_Quick_Start_Guide.md#installation), optional: [PyCryptoDome](#pycryptodome)
+ * Litecoin-Qt -  optional: [PyCryptoDome](#pycryptodome)
+ * Electrum-LTC - recommended: [PyCryptoDome](#pycryptodome)
+ * Litecoin Wallet for Android - recommended: [PyCryptoDome](#pycryptodome)
+ * Dogecoin Core -  optional: [PyCryptoDome](#pycryptodome)
+ * MultiDoge - recommended: [PyCryptoDome](#pycryptodome)
+ * Dogecoin Wallet for Android - recommended: [PyCryptoDome](#pycryptodome)
+ * SLIP39 Wallets: [shamir-mnemonic](https://pypi.org/project/shamir-mnemonic/)
+ * Py_Crypto_HD_Wallet Based BIP39 Wallets: [py_crypto_hd_wallet](https://pypi.org/project/py-crypto-hd-wallet/)
+    * Avalanche
+    * Cosmos (Atom)
+    * Polkadot
+    * Secret Network
+    * Solana
+    * Stellar
+    * Tezos
+    * Tron
+ * Helium BIP39 Wallets: [pynacl](https://pypi.org/project/PyNaCl/) and [bitstring](https://pypi.org/project/bitstring/)
+ * Eth Keystore Files: [eth-keyfile](https://pypi.org/project/eth-keyfile/)
+ * Eth2 Validator Seed Recovery: [staking-deposit](https://github.com/ethereum/staking-deposit-cli/)
+ * Groestlecoin BIP39 Wallets: [groestlcoin_hash](https://pypi.org/project/groestlcoin-hash/)
 
- * Armory 0.91.x or earlier - unsupported, please upgrade Armory first
- * Armory 0.92.x on Windows - [Python 2.7](#python-27) **32-bit** (x86)
- * Armory 0.93+ on Windows - [Python 2.7](#python-27) **64-bit** (x86-64)
- * Armory 0.92+ on Linux - no additional requirements
- * Armory 0.92+ on OS X - some versions of Armory may not work correctly on OS X, if in doubt use version 0.95.1
- * Bitcoin Unlimited/Classic/XT/Core - [Python 2.7](#python-27),  optional: [PyCrypto](#pycrypto)
- * MultiBit Classic - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * MultiBit HD - [Python 2.7](#python-27), [scrypt](#scrypt), optional: [PyCrypto](#pycrypto)
- * Electrum (1.x or 2.x) - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Electrum 2.8+ fully encrypted wallets - [Python 2.7](#python-27) (2.7.8+ recommended), [coincurve](Seedrecover_Quick_Start_Guide.md#installation), optional: [PyCrypto](#pycrypto)
- * BIP-39 Bitcoin passphrases (e.g. TREZOR) - [Python 2.7](#python-27) (2.7.8+ recommended), [coincurve](Seedrecover_Quick_Start_Guide.md#installation)
- * BIP-39 Ethereum passphrases (e.g. TREZOR) - [Python 2.7](#python-27) (2.7.8+ recommended), [coincurve and pysha3](Seedrecover_Quick_Start_Guide.md#installation)
- * Hive for OS X - [Python 2.7](#python-27), [scrypt](#scrypt), [Google protobuf](#google-protocol-buffers), optional: [PyCrypto](#pycrypto)
- * mSIGNA (CoinVault) - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Blockchain.info - [Python 2.7](#python-27) (2.7.8+ recommended), recommended: [PyCrypto](#pycrypto)
- * Bitcoin Wallet for Android/BlackBerry backup - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Bitcoin Wallet for Android/BlackBerry spending PIN - [Python 2.7](#python-27), [scrypt](#scrypt), [Google protobuf](#google-protocol-buffers), optional: [PyCrypto](#pycrypto)
- * KnC Wallet for Android backup - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Bither - [Python 2.7](#python-27), [scrypt](#scrypt), [coincurve](Seedrecover_Quick_Start_Guide.md#installation), optional: [PyCrypto](#pycrypto)
- * Litecoin-Qt - [Python 2.7](#python-27),  optional: [PyCrypto](#pycrypto)
- * Electrum-LTC - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Litecoin Wallet for Android - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Dogecoin Core - [Python 2.7](#python-27),  optional: [PyCrypto](#pycrypto)
- * MultiDoge - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
- * Dogecoin Wallet for Android - [Python 2.7](#python-27), recommended: [PyCrypto](#pycrypto)
+* BIP38 Encrypted Private Keys: [ecdsa](https://pypi.org/project/ecdsa/)
 
+### scrypt
+
+BTCRecover prefers the `wallycore` implementation of `scrypt` when available.
+If `wallycore` is not installed it falls back to `pylibscrypt`, which is
+approximately 20% slower for BIP38 operations and other wallet formats that rely
+on scrypt.
 
 ----------
 
-
-### Python 2.7 ###
-
-##### Windows #####
-
-Visit the Python download page here: <https://www.python.org/downloads/windows/>, and click the link for the latest **Python 2.7** release near the top of the page under the heading *Python Releases for Windows*. Download and run either the `Windows x86 MSI installer` for the 32-bit version of Python, or the `Windows x86-64 MSI installer` for the 64-bit one (for Armory wallets, be sure to choose the correct one as noted above). Modern PCs should use the 64-bit version, however if you're unsure which one is compatible with your PC, choose the 32-bit one.
-
-##### Linux #####
-
-Most distributions include Python 2.7 pre-installed.
-
-Note that for Blockchain.info wallets, Python version 2.7.8 or greater is recommended, and will run approximately 5 times faster than earlier versions. You can determine which version of Python you have installed by running `python --version` in a terminal. If your version is earlier than 2.7.8, you may want to check if your distribution has a “backports” repository with a more up-to-date version.
-
-Some Linux distributions do not include the bsddb (Berkeley DB) Python module. This is usually not a problem, however if you encounter a `master key #1 not found` error, it might be resolved by installing the bsddb module (or a version of Python which includes it).
-
-##### OS X #####
-
-Since OS X includes an older version of Python 2, it's strongly recommended that you install the latest version. Doing so will not affect the older OS X version, the new one will be installed in a different place from the existing one.
-
-To install the latest version, visit the Python download page here: <https://www.python.org/downloads/mac-osx/>, and click the link for the latest **Python 2** release. Download and open either the `Mac OS X 64-bit/32-bit installer` for OS X 10.6 and later (most people will want this one), or the `Mac OS X 32-bit i386/PPC installer` for OS X 10.5.
-
-If you have any Terminal windows open, close them after the installation completes to allow the new version to go into effect.
-
-If (and only if) you decide *not* to install the latest version of Python 2, you will need to manually install `pip` if you need to install any of the other requirements below:
-
-        curl https://bootstrap.pypa.io/get-pip.py | sudo python
-
-
-### PyCrypto ###
-
-PyCrypto is not strictly required for any wallet, however it offers a 20x speed improvement for wallets that tag it as recommended in the list above.
-
-##### Windows #####
-
-Download and run the PyCrypto 2.6 installer for Python 2.7, either the 32-bit version or the 64-bit version to match your version of Python. This is either `PyCrypto 2.6 for Python 2.7 32bit` or `PyCrypto 2.6 for Python 2.7 64bit` available here: <http://www.voidspace.org.uk/python/modules.shtml#pycrypto>
-
-##### Linux #####
-
-Many distributions include PyCrypto pre-installed, check your distribution’s package management system to see if it is available (it is often called “python-crypto”). If not, try installing it from PyPI, for example on Debian-like distributions (including Ubuntu), if this doesn't work:
-
-    sudo apt-get install python-crypto
-
-then try this instead:
-
-    sudo apt-get install python-pip
-    sudo pip install pycrypto
-
-##### OS X #####
-
- 1. Open a terminal window (open the Launchpad and search for "terminal"). Type this and then choose `Install` to install the command line developer tools:
-
-        xcode-select --install
-
- 2. Type this to install PyCrypto:
-
-        sudo pip install pycrypto
-
-
-### scrypt ###
-
-##### Windows #####
-
- 1. Open a command prompt window, and type this to install pylibscrypt:
-
-        C:\Python27\Scripts\pip install pylibscrypt
-
- 2. Download this libsodium zip file, and extract it to a temporary location: <https://download.libsodium.org/libsodium/releases/libsodium-1.0.16-msvc.zip>
-
- 3. Find the correct `libsodium.dll` file from the extracted files, it will be located at one of these two paths:
-
-        Win32\Release\v141\dynamic\libsodium.dll
-        x64\Release\v141\dynamic\libsodium.dll
-
-    Choose either the 32-bit version (the first one above) or the 64-bit version (the second), it **must** match the version of Python that you've installed. Note that the 64-bit version is recommended if it's supported by your computer (it is approximately 35% faster than the 32-bit version, so install the 64-bit versions of both libsodium *and* Python for best performance).
-
- 4. Copy the chosen `libsodium.dll` file into your `C:\Python27` directory.
-
- 5. Download and install one of the two update packages below from Microsoft, either the 32-bit version or the 64-bit version (the second) to match the version of Python that you've installed.
- 
-    * [Microsoft Visual C++ Redistributable for Visual Studio 2017 **32-bit**](https://go.microsoft.com/fwlink/?LinkId=746571)
-    * [Microsoft Visual C++ Redistributable for Visual Studio 2017 **64-bit**](https://go.microsoft.com/fwlink/?LinkId=746572)
-
-##### Linux #####
-
-Install pylibscrypt and at least one scrypt library, for example on Debian-like distributions (including Ubuntu):
-
- 1. Open a terminal window, and type this to install pylibscrypt:
-
-        sudo apt-get install python-pip
-        sudo pip install pylibscrypt
-
- 2. Install *one* of the scrypt libraries listed under the Requirements section here: <https://pypi.python.org/pypi/pylibscrypt>, e.g. try each of these commands, stopping after the *first one* succeeds:
-
-        sudo apt-get install libscrypt0
-        sudo apt-get install python-scrypt
-        sudo pip install scrypt
-        sudo apt-get install libsodium18
-        sudo apt-get install libsodium13
-
-##### OS X #####
-
- 1. Open a terminal window (open the Launchpad and search for "terminal"). Type this and then choose `Install` to install the command line developer tools:
-
-        xcode-select --install
-
- 2. Type this to install pylibscrypt and libscrypt:
-
-        sudo pip install pylibscrypt
-
-        curl -Lo libscrypt.zip https://github.com/technion/libscrypt/archive/master.zip
-        unzip libscrypt.zip
-        cd libscrypt-master
-        make CFLAGS_EXTRA= LDFLAGS= LDFLAGS_EXTRA= && sudo make install-osx
-
-
-### Google Protocol Buffers ###
-
-##### Windows #####
-
-Open a command prompt window, and type this to install Google Protocol Buffers:
-
-    C:\Python27\Scripts\pip install protobuf
-
-##### Linux #####
-
-Install the Google's Python protobuf library, for example on Debian-like distributions (including Ubuntu), open a terminal window and type this:
-
-    sudo apt-get install python-pip
-    sudo pip install protobuf
-
-##### OS X #####
-
- 1. Open a terminal window (open the Launchpad and search for "terminal"). Type this and then choose `Install` to install the command line developer tools:
-
-        xcode-select --install
-
- 2. Type this to install Google Protocol Buffers:
-
-        sudo pip install protobuf
+### secp256k1 Backends (coincurve / wallycore / pure-Python)
+
+BTCRecover no longer hard-depends on `coincurve` for secp256k1 operations
+(public-key derivation, P2TR taproot tweaking, and Electrum 2.8 ECIES). It
+selects a backend automatically, in this order:
+
+ 1. **coincurve** — Used when the `coincurve` package is installed (this is the
+    default when you install `requirements.txt` or `requirements-full.txt`).
+ 2. **wallycore** — Used when `coincurve` is *not* installed but `wallycore`
+    is. `wallycore` is already a dependency of `requirements-full.txt` and is
+    also usable with the base requirements by installing it separately
+    (`pip install wallycore`). It covers every secp256k1 operation BTCRecover
+    needs, at roughly the same speed as `coincurve` (see Performance below).
+ 3. **pure-Python** — Used only when neither `coincurve` nor `wallycore` is
+    available. A warning is printed on startup. This keeps BTCRecover working in
+    minimal environments (e.g. Termux, or platforms without pre-built C
+    extension wheels), but it is dramatically slower for secp256k1-heavy
+    recoveries.
+
+You can force a specific backend (for testing, or to avoid an unwanted
+dependency) by setting the `BTCR_BACKEND` environment variable to `coincurve`,
+`wallycore`, or `purepython` before running BTCRecover. If the forced backend is
+not available, BTCRecover warns and falls back to the next available one — so
+setting `BTCR_BACKEND` is not by itself proof of which backend ran. To check
+what is actually in use:
+
+    python -c "from btcrecover import crypto_backends; print(crypto_backends.BACKEND_NAME)"
+
+`benchmark.py --backend NAME` makes this check for you, and aborts rather than
+reporting results labelled with a backend that did not actually run.
+
+#### Performance
+
+**`coincurve` and `wallycore` perform roughly the same on most systems.** Both
+wrap a C implementation of secp256k1, so the gap between them is typically within
+run-to-run noise. Pick whichever installs cleanly on your platform (see the
+Python 3.14 and Termux notes above) rather than choosing one for speed.
+
+Both are **well over 100× faster** than the pure-Python backend at public-key
+derivation, which is what dominates a standard BIP-39 wallet recovery. Indicative
+single-threaded figures (AMD Ryzen 9 9950X, Python 3.13) — absolute numbers vary
+widely with hardware, so the ratios are the point:
+
+| Backend            | Public-key derivations/sec | Electrum 2.8 ECIES mult/sec | Relative speed |
+|--------------------|---------------------------:|----------------------------:|---------------:|
+| coincurve          | ~70,000                    | ~31,000                     | ~1× (baseline) |
+| wallycore          | ~71,000                    | ~31,000                     | ~1×            |
+| pure-Python        | ~600                       | ~530                        | ~115× slower   |
+
+The pure-Python backend is perfectly usable for small
+jobs and for verifying dependencies aren't required, but for large password or
+seed searches you should install `coincurve` or `wallycore` to avoid runtimes
+that are two orders of magnitude longer.
+
+For **simple recoveries** — 1–2 missing or wrong BIP-39 words (e.g. a wrong
+word from a known wallet, or one word you don't fully remember) — the
+pure-Python backend is fast enough: on an average computer the search finishes
+in **well under 24 hours** without any additional modules installed. You can
+start with just Python + the base `requirements.txt` and only bother with the
+C-backed packages if your recovery turns out to be more complex.
+
+You can compare the backends on your own hardware with
+`python benchmark_crypto_backends.py`, which reports each operation separately
+for every backend you have installed.
 
 ----------
 
+### PyCryptoDome ###
 
-### Windows GPU acceleration for Bitcoin Unlimited/Classic/XT/Core, Armory, or Litecoin-Qt ###
+With the exception of Ethereum wallets, PyCryptoDome is not strictly required for any wallet, however it offers a 20x speed improvement for wallets that tag it as recommended in the list above.
 
- 1. Download the latest version of PyOpenCL for OpenCL 1.2 / Python 2.7, either the 32-bit version or the 64-bit version to match the version of Python you installed, from here: <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl>. For best compatibility, be sure to select a version for OpenCL 1.2 *and no later* (look for "cl12" in the file name, and also look for "27" to match Python 2.7).
+### Py_Crypto_HD_Wallet ###
 
-    As of this writing, the 32-bit and 64-bit versions are named respectively:
+This module is required for a number of different wallet types.
 
-        pyopencl-2017.1.1+cl12-cp27-cp27m-win32.whl
-        pyopencl-2017.1.1+cl12-cp27-cp27m-win_amd64.whl
+For Windows Users, you will also need to install the Microsoft Visual C++ Build Tools befor you will be able to successfully install the module. 
 
- 2. Open a command prompt window, and type this to install PyOpenCL and its dependencies:
+A video tutorial that covers this can be found here: <https://youtu.be/0LMUf0R9Pi4>
 
-        cd %USERPROFILE%\Downloads
-        C:\Python27\Scripts\pip install pyopencl-2017.1.1+cl12-cp27-cp27m-win_amd64.whl
+For MacOS and Linux users, the module should build/install just fine if you follow the installation instructions on this page for your platform.
 
-    Note that you may need to change either the directory (on the first line) or the filename (on the second) depending on the filename you downloaded and its location.
+### Staking-Deposit ###
 
-[PyCrypto](#pycrypto) is also recommended for Bitcoin Unlimited/Classic/XT/Core or Litecoin-Qt wallets for a 2x speed improvement.
+This module isn't available as a pre-compiled package and must be downloaded and built from source.
+
+It is installed as part of the collection of modules installed by `requirements-full.txt`.
+
+Alternately, you can attempt to download, build and install it via pip3 with the following command:
+   
+`pip3 install git+https://github.com/ethereum/staking-deposit-cli.git@v2.5.0`
+
+This module also requires the `py_ecc` module which can be installed with the command:
+
+`pip3 install py_ecc`
+
+[More information can be found at its repository](https://github.com/ethereum/staking-deposit-cli/)
+
+Note: Some dependencies for this module won't always build if you are running the latest version of Python, if you run into build errors, you should try the previous major Python Versions until you find one that works on your system (eg: Something like 3.10)

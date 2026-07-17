@@ -1,6 +1,6 @@
 ## *btcrecover* Typos Quick Start Guide ##
 
-If you only have a single (or just a few) passwords that you'd like to apply some typos to, you can use the following table to pick a set of [typos command-line options](../TUTORIAL.md#typos) with which to run *btcrecover*.
+If you only have a single (or just a few) passwords that you'd like to apply some typos to, you can use the following table to pick a set of [typos command-line options](TUTORIAL.md#typos) with which to run *btcrecover*.
 
 The leftmost column contains the command-line options, with a full set of options on each row (if the options for a row is blank, they're the same as the row above). As a general rule, each successive row of options will try a larger set of typos than the preceding row. You should select a row which includes the same type of wallet you intend to test, along with a password length that's similar to your password(s). The columns on the right will give you a rough estimate of how many password variations there are and of how long *btcrecover* will take to check the variations (per input password to be tested).
 
@@ -27,7 +27,7 @@ The leftmost column contains the command-line options, with a full set of option
 
 ### Typos Maps ###
 
-The *btcrecover* package includes a few [typos-map](../TUTORIAL.md#typos-map) example files in this directory. One of them, `us-with-shifts-map.txt`, is used in the Quick Start suggestions above.
+The *btcrecover* package includes a few [typos-map](TUTORIAL.md#typos-map) example files in this directory. One of them, `us-with-shifts-map.txt`, is used in the Quick Start suggestions above.
 
  * `us-map.txt` - For each key on a standard US ANSI ASCII keyboard, this typos-map file will try an adjacent key to test the case where your finger may have slipped one position while typing a password. This typos-map is only intended for testing passwords which do not contain any shifted letters or symbols.
 
